@@ -19,14 +19,15 @@
  * @return
  *   Boolean value denoting success or failure of the notification.
  */
-function message_notify_send_message(Message $message, $options = array(), $notifier_name = 'email') {
+function message_notify_send_message(Message $message, array $options = array(), $notifier_name = 'email') {
   if (!$plugin = message_notify_get_notifier($notifier_name)) {
    throw new MessageNotifyException(format_string('Could not send notification using the "@notifier" notifier.'), array('@notifier' => $notifier_name));
   }
   $options += $plugin['options'];
+  $plugin['options'] = $options;
 
   $class = ctools_plugin_load_class('message_notify', 'notifier', $notifier_name, 'class');
-  $notifier = new $class($message, $options);
+  $notifier = new $class($plugin, $message);
   if ($notifier->access()) {
     return $notifier->send();
   }
@@ -110,13 +111,15 @@ function message_notify_ctools_plugin_directory($module, $plugin) {
 function message_notify_plugin_process(&$plugin, $info) {
   $plugin += array(
     'description' => '',
-    'save on fail' => TRUE,
-    'save on success' => TRUE,
-    // Override mail.
-    'mail' => FALSE,
-    // Override user's language, and use Message language.
-    'language override' => FALSE,
-    'rendered fields' => array(),
+    'options' => array(
+      'save on fail' => TRUE,
+      'save on success' => TRUE,
+      // Override mail.
+      'mail' => FALSE,
+      // Override user's language, and use Message language.
+      'language override' => FALSE,
+      'rendered fields' => array(),
+    ),
   );
 }
 
@@ -128,7 +131,7 @@ function message_notify_plugin_process(&$plugin, $info) {
  */
 function message_notify_get_notifier($notifier_name) {
   ctools_include('plugins');
-  return ctools_get_plugins('message_notify', 'notifier', $plugin_name);
+  return ctools_get_plugins('message_notify', 'notifier', $notifier_name);
 }
 
 /**

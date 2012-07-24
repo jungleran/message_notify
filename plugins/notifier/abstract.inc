@@ -11,12 +11,13 @@ interface MessageNotifierInterface {
   /**
    * Constructor for the notifier.
    *
-   * @param $notifier_name
-   *   The name of the notifier plugin.
+   * @param $plugin
+   *   The notifier plugin object. Note the "options" values might have
+   *   been overriden in message_notify_send_message().
    * @param Message $message
    *   The Message entity.
    */
-  public function __construct($notifier_name, Message $message);
+  public function __construct($plugin, Message $message);
 
   /**
    * Entry point to send and process a message.
@@ -68,8 +69,8 @@ abstract class MessageNotifierBase implements MessageNotifierInterface {
    */
   protected $message;
 
-  public function __construct($notifier_name, Message $message) {
-    $this->plugin = message_notify_get_notifier($notifier_name);
+  public function __construct($plugin, Message $message) {
+    $this->plugin = $plugin;
     $this->message = $message;
   }
 
@@ -95,14 +96,16 @@ abstract class MessageNotifierBase implements MessageNotifierInterface {
     $plugin = $this->plugin;
     $message = $this->message;
 
+    $options = $plugin['options'];
+
     $save = FALSE;
     if (!$result) {
       watchdog('message_notify', t('Could not send message using @title to user ID @uid.'), array('@label' => $plugin['title'], '@uid' => $message->uid), WATCHDOG_ERROR);
-      if ($plugin['save on fail']) {
+      if ($options['save on fail']) {
         $save = TRUE;
       }
     }
-    elseif ($result && $plugin['save on success']) {
+    elseif ($result && $options['save on success']) {
       $save = TRUE;
     }
 
@@ -110,18 +113,18 @@ abstract class MessageNotifierBase implements MessageNotifierInterface {
       return;
     }
 
-    if ($plugin['rendered fields']) {
+    if ($options['rendered fields']) {
       // Save the rendered output into matching fields.
       $wrapper = entity_metadata_wrapper('message', $message);
       foreach ($this->viewModes() as $view_mode) {
-        if (empty($plugin['rendered fields'][$view_mode])) {
+        if (empty($options['rendered fields'][$view_mode])) {
           throw new MessageNotifyException(format_string('The rendered view mode @mode cannot be saved to field, as there is not a matching one.', array('@mode' => $view_mode)));
         }
-        $field_name = $plugin['rendered fields'][$view_mode];
+        $field_name = $options['rendered fields'][$view_mode];
 
         // Get the format from the field. We assume the first delta is the
         // same as the rest.
-        if (empty($wrapper->{$options['rendered body field']}->format)) {
+        if (empty($wrapper->{$field_name}->format)) {
           $wrapper->{$field_name}->set($output[$view_mode]);
         }
         else {

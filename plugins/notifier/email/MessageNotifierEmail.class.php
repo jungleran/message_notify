@@ -19,11 +19,13 @@ class MessageNotifierEmail extends MessageNotifierBase {
     $plugin = $this->plugin;
     $message = $this->message;
 
+    $options = $plugin['options'];
+
     $account = user_load($message->uid);
-    $mail = $plugin['mail'] ? $plugin['mail'] : $account->mail;
+    $mail = $options['mail'] ? $options['mail'] : $account->mail;
 
     $languages = language_list();
-    if (!$plugin['language override']) {
+    if (!$options['language override']) {
       $lang = !empty($account->language) && $account->language != LANGUAGE_NONE ? $languages[$account->language]: language_default();
     }
     else {
