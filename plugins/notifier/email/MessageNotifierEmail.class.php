@@ -3,12 +3,12 @@
 /**
  * Email notifier.
  */
-class MessageNotifierEmail implements MessageNotifierBase {
+class MessageNotifierEmail extends MessageNotifierBase {
 
   /**
    * Add Message notify view mode.
    */
-  public function viewModes() {
+  public static function viewModes() {
     return array(
       'message_notify_email_subject' => array('label' => t('Notify - Email subject')),
       'message_notify_email_body' => array('label' => t('Notify - Email subject')),

@@ -11,7 +11,7 @@
  * @param $message
  *   The message entity being used for the notification.
  * @param $options
- *
+ *   Array of options to override the plugin's default ones.
  * @param $notifier_name
  *   Optional; The name of the notifier to use. Defaults to "email"
  *   sending method.
@@ -119,7 +119,6 @@ function message_notify_plugin_process(&$plugin, $info) {
     'rendered fields' => array(),
   );
 }
-
 
 /**
  * Helper function to include CTools plugins and get a notifier plguin.
