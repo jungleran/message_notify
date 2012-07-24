@@ -131,3 +131,48 @@ function message_notify_mail($key, &$message, $params) {
   $message['subject'] = $params['rendered_subject'];
   $message['body'][] = $params['rendered_body'];
 }
+
+
+/**
+ * Implements hook_ctools_plugin_api().
+ */
+function message_notify_ctools_plugin_api($module, $api) {
+  if ($module == 'message_notify' && $api == 'notifier') {
+    return array('version' => 1);
+  }
+}
+
+/**
+ * Implements hook_ctools_plugin_type().
+ */
+function message_notify_ctools_plugin_type() {
+  $plugins['notifier'] = array(
+    'classes' => array('class'),
+    'process' => 'message_notify_plugin_process',
+  );
+  return $plugins;
+}
+
+/**
+ * Implements hook_ctools_plugin_directory().
+ */
+function message_notify_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'message_notify') {
+    return 'plugins/' . $plugin;
+  }
+}
+
+/**
+ * CTools callback; Process the notifier plugins.
+ */
+function message_notify_plugin_process(&$plugin, $info) {
+  $plugin += array(
+    'save on fail' => TRUE,
+    'save on success' => TRUE,
+    // Override mail.
+    'mail' => FALSE,
+    // Override user's language, and use Message language.
+    'language override' => FALSE,
+    'rendered fields' => array(),
+  );
+}
