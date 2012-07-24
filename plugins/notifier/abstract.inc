@@ -35,13 +35,6 @@ interface MessageNotifierInterface {
    */
   public function deliver(array $output = array());
 
-
-
-  /**
-   * Post send operations.
-   */
-  public function postSend($result);
-
   /**
    * Post send operations.
    */
@@ -90,7 +83,7 @@ abstract class MessageNotifierBase implements MessageNotifierInterface {
     $this->postSend($result, $output);
   }
 
-  public function deliver($output) {}
+  public function deliver(array $output = array()) {}
 
   /**
    * Act upon send result.
@@ -98,7 +91,7 @@ abstract class MessageNotifierBase implements MessageNotifierInterface {
    * - Save the rendered messages if needed.
    * - Invoke watchdog error on failure.
    */
-  public function postSend($result, $output) {
+  public function postSend($result, array $output = array()) {
     $plugin = $this->plugin;
     $message = $this->message;
 

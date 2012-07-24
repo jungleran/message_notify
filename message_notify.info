@@ -5,3 +5,4 @@ package = Message
 dependencies[] = message
 
 files[] = includes/message_notify.exception.inc
+files[] = plugins/notifier/abstract.inc
