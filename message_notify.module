@@ -5,7 +5,7 @@
  * Message notify.
  */
 
-
+/**
  * Process and send a message.
  *
  * @param $message
@@ -20,13 +20,27 @@
  *   Boolean value denoting success or failure of the notification.
  */
 function message_notify_send_message(Message $message, $options = array(), $notifier_name = 'email') {
-  ctools_include('plugins');
-  if (!$class = ctools_plugin_load_class('message_notify', 'notifier', $notifier_name, 'class')) {
-    throw new MessageNotifyException(format_string('Could not send notification using the "@notifier" notifier.'), array('@notifier' => $notifier_name));
+  if (!$plugin = message_notify_get_notifier($notifier_name)) {
+   throw new MessageNotifyException(format_string('Could not send notification using the "@notifier" notifier.'), array('@notifier' => $notifier_name));
   }
+  $options += $plugin['options'];
 
+  $class = ctools_plugin_load_class('message_notify', 'notifier', $notifier_name, 'class');
   $notifier = new $class($message, $options);
-  return $notifier->send();
+  if ($notifier->access()) {
+    return $notifier->send();
+  }
+}
+
+/**
+ * Helper function to include CTools plugins and get an export-ui exportable.
+ *
+ * @param $plugin_name
+ *   The plugin that should be laoded.
+ */
+function message_notify_get_notifier($notifier_name) {
+  ctools_include('plugins');
+  return ctools_get_plugins('message_notify', 'notifier', $plugin_name);
 }
 
 /**
@@ -45,7 +59,7 @@ function message_notify_send_mail(Message $message, $options = array()) {
     'language override' => FALSE
   );
 
-  $account = user_load($message->uid);
+
   $element = $message->buildContent('full', $account->language);
 
   $message->rendered_subject = $element['subject']['#markup'];
@@ -73,17 +87,7 @@ function message_notify_send_mail(Message $message, $options = array()) {
     'rendered_body' => $message->rendered_body,
   );
 
-  $mail = $options['mail'] ? $options['mail'] : $account->mail;
 
-  $languages = language_list();
-  if (!$options['language override']) {
-    $lang = !empty($account->language) && $account->language != LANGUAGE_NONE ? $languages[$account->language]: language_default();
-  }
-  else {
-    $lang = $languages[$message->language];
-  }
-
-  $result = drupal_mail('message_notify', $message->type, $mail, $lang, $params);
   if (!$result) {
     watchdog('message_notify', t('Could not send "@type" email to user ID @uid'), array('@message' => $message->type, '@uid' => $message->uid), WATCHDOG_ERROR);
     if ($options['save on fail']) {
@@ -94,18 +98,6 @@ function message_notify_send_mail(Message $message, $options = array()) {
     $message->save();
   }
   return $result;
-}
-
-/**
- * Implements hook_message_view().
- */
-function message_notify_message_view($message, $view_mode, $langcode) {
-  if ($message->getType()->category == 'message_type_email') {
-    $message->content['subject'] = array(
-      // Add the subject field.
-      '#markup' => $message->getText($langcode, array('field name' => 'message_text_subject')),
-    );
-  }
 }
 
 /**
@@ -128,8 +120,8 @@ function message_notify_default_message_type_category() {
  * Set's the message subject and body as configured.
  */
 function message_notify_mail($key, &$message, $params) {
-  $message['subject'] = $params['rendered_subject'];
-  $message['body'][] = $params['rendered_body'];
+  $message['subject'] = $params['message_notify_email_subject'];
+  $message['body'][] = $params['message_notify_email_body'];
 }
 
 
@@ -164,9 +156,12 @@ function message_notify_ctools_plugin_directory($module, $plugin) {
 
 /**
  * CTools callback; Process the notifier plugins.
+ *
+ * TODO: document keys.
  */
 function message_notify_plugin_process(&$plugin, $info) {
   $plugin += array(
+    'description' => '',
     'save on fail' => TRUE,
     'save on success' => TRUE,
     // Override mail.
