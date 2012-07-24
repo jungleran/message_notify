@@ -5,6 +5,30 @@
  * Message notify.
  */
 
+
+ * Process and send a message.
+ *
+ * @param $message
+ *   The message entity being used for the notification.
+ * @param $options
+ *
+ * @param $notifier_name
+ *   Optional; The name of the notifier to use. Defaults to "email"
+ *   sending method.
+ *
+ * @return
+ *   Boolean value denoting success or failure of the notification.
+ */
+function message_notify_send_message(Message $message, $options = array(), $notifier_name = 'email') {
+  ctools_include('plugins');
+  if (!$class = ctools_plugin_load_class('message_notify', 'notifier', $notifier_name, 'class')) {
+    throw new MessageNotifyException(format_string('Could not send notification using the "@notifier" notifier.'), array('@notifier' => $notifier_name));
+  }
+
+  $notifier = new $class($message, $options);
+  return $notifier->send();
+}
+
 /**
  * Process and send a message.
  */
