@@ -33,71 +33,20 @@ function message_notify_send_message(Message $message, $options = array(), $noti
 }
 
 /**
- * Helper function to include CTools plugins and get an export-ui exportable.
+ * Implements hook_entity_info_alter().
  *
- * @param $plugin_name
- *   The plugin that should be laoded.
+ * Add a the notifiers view modes.
  */
-function message_notify_get_notifier($notifier_name) {
-  ctools_include('plugins');
-  return ctools_get_plugins('message_notify', 'notifier', $plugin_name);
-}
-
-/**
- * Process and send a message.
- */
-function message_notify_send_mail(Message $message, $options = array()) {
-  // Set default values.
-  $options += array(
-    'save on fail' => TRUE,
-    'save on success' => TRUE,
-    'rendered subject field' => FALSE,
-    'rendered body field' => FALSE,
-    // Override email address.
-    'mail' => FALSE,
-    // Override user's language, and use Message language.
-    'language override' => FALSE
-  );
-
-
-  $element = $message->buildContent('full', $account->language);
-
-  $message->rendered_subject = $element['subject']['#markup'];
-  $message->rendered_body = $element['text']['#markup'];
-
-  $wrapper = entity_metadata_wrapper('message', $message);
-  if ($options['rendered subject field']) {
-    $wrapper->{$options['rendered subject field']}->set($message->rendered_subject);
-  }
-  if ($options['rendered body field']) {
-    // Get the format from the field. We assume the first delta is the
-    // same as the rest.
-    if (empty($wrapper->{$options['rendered body field']}->format)) {
-      $wrapper->{$options['rendered body field']}->set($message->rendered_body);
+function message_notify_entity_info_alter(&$entity_info) {
+  foreach (message_notify_get_notifiers() as $notifier_name => $plugin) {
+    $class = ctools_plugin_load_class('message_notify', 'notifier', $notifier_name, 'class');
+    $view_modes = $class::viewModes();
+    // Set default values.
+    foreach ($view_modes as &$view_mode) {
+      $view_mode += array('custom settings' => FALSE);
     }
-    else {
-      $format = $wrapper->type->{MESSAGE_FIELD_MESSAGE_TEXT}->get(0)->format->value();
-      $wrapper->{$options['rendered body field']}->set(array('value' => $message->rendered_body, 'format' => $format));
-    }
+    $entity_info['message']['view modes'] += $view_modes;
   }
-
-  $params = array(
-    'message_entity' => $message,
-    'rendered_subject' => $message->rendered_subject,
-    'rendered_body' => $message->rendered_body,
-  );
-
-
-  if (!$result) {
-    watchdog('message_notify', t('Could not send "@type" email to user ID @uid'), array('@message' => $message->type, '@uid' => $message->uid), WATCHDOG_ERROR);
-    if ($options['save on fail']) {
-      $message->save();
-    }
-  }
-  elseif ($result && $options['save on success']) {
-    $message->save();
-  }
-  return $result;
 }
 
 /**
@@ -123,7 +72,6 @@ function message_notify_mail($key, &$message, $params) {
   $message['subject'] = $params['message_notify_email_subject'];
   $message['body'][] = $params['message_notify_email_body'];
 }
-
 
 /**
  * Implements hook_ctools_plugin_api().
@@ -170,4 +118,24 @@ function message_notify_plugin_process(&$plugin, $info) {
     'language override' => FALSE,
     'rendered fields' => array(),
   );
+}
+
+
+/**
+ * Helper function to include CTools plugins and get a notifier plguin.
+ *
+ * @param $plugin_name
+ *   The plugin that should be laoded.
+ */
+function message_notify_get_notifier($notifier_name) {
+  ctools_include('plugins');
+  return ctools_get_plugins('message_notify', 'notifier', $plugin_name);
+}
+
+/**
+ * Helper function to include CTools plugins and get all notifier plugins.
+ */
+function message_notify_get_notifiers() {
+  ctools_include('plugins');
+  return ctools_get_plugins('message_notify', 'notifier');
 }

@@ -57,7 +57,7 @@ interface MessageNotifierInterface {
    *
    * Those view modes are later going to be rendered and sent.
    */
-  public function viewModes();
+  public static function viewModes();
 }
 
 /**
@@ -78,10 +78,6 @@ abstract class MessageNotifierBase implements MessageNotifierInterface {
   public function __construct($notifier_name, Message $message) {
     $this->plugin = message_notify_get_notifier($notifier_name);
     $this->message = $message;
-  }
-
-  public function viewModes() {
-    return array();
   }
 
   public function send() {
@@ -149,6 +145,10 @@ abstract class MessageNotifierBase implements MessageNotifierInterface {
 
   public function access() {
     return TRUE;
+  }
+
+  public static function viewModes() {
+    return array();
   }
 
 }

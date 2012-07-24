@@ -10,8 +10,8 @@ class MessageNotifierEmail implements MessageNotifierBase {
    */
   public function viewModes() {
     return array(
-      'message_notify_email_subject' => t('Notify - Email subject'),
-      'message_notify_email_body' => t('Notify - Email subject'),
+      'message_notify_email_subject' => array('label' => t('Notify - Email subject')),
+      'message_notify_email_body' => array('label' => t('Notify - Email subject')),
     );
   }
 
