@@ -77,8 +77,8 @@ abstract class MessageNotifierBase implements MessageNotifierInterface {
   public function send() {
     $message = $this->message;
     $output = array();
-    foreach ($this->viewModes() as $view_mode) {
-      $output[$view_mode] = $message->view($view_mode);
+    foreach ($this->viewModes() as $view_mode => $value) {
+      $output[$view_mode] = render($message->view($view_mode));
     }
     $result = $this->deliver($output);
     $this->postSend($result, $output);
