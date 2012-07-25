@@ -44,7 +44,7 @@ function message_notify_entity_info_alter(&$entity_info) {
     $view_modes = $class::viewModes();
     // Set default values.
     foreach ($view_modes as &$view_mode) {
-      $view_mode += array('custom settings' => FALSE);
+      $view_mode += array('custom settings' => TRUE);
     }
     $entity_info['message']['view modes'] += $view_modes;
   }
