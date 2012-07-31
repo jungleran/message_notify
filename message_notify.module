@@ -141,3 +141,15 @@ function message_notify_get_notifiers() {
   ctools_include('plugins');
   return ctools_get_plugins('message_notify', 'notifier');
 }
+
+/**
+ * Deprectaed: Send email.
+ *
+ * Wrapper function for message_notify_send_message(), using the "email"
+ * notifier.
+ *
+ * @deprecated
+ */
+function message_notify_send_email(Message $message, array $options = array()) {
+  message_notify_send_message($message, $options, 'email');
+}
