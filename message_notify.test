@@ -43,18 +43,19 @@ class MessageNotifyCrud extends DrupalWebTestCase {
     $wrapper->message_text_another = 'another field';
     $wrapper->save();
 
-    $message = message_create('foo');
-
     $this->message_type = $message_type;
-    $this->message = $message;
 
     // Enable the Full view mode, hide the first partial,
     // and display the last partial first.
     $settings = field_bundle_settings('message', 'foo');
     $settings['view_modes']['full']['custom_settings'] = TRUE;
     $settings['extra_fields']['display']['message_text__0']['foo'] = array('weight' => 0, 'visible' => FALSE);
-    $settings['extra_fields']['display']['message_text__1']['foo'] = array('weight' => 5, 'visible' => TRUE);
-    $settings['extra_fields']['display']['message_text_subject__0']['bar'] = array('weight' => 0, 'visible' => TRUE);
+    $settings['extra_fields']['display']['message_text__1']['foo'] = array('weight' => 0, 'visible' => TRUE);
+    $settings['extra_fields']['display']['message_text_another__0']['foo'] = array('weight' => 0, 'visible' => FALSE);
+
+    $settings['extra_fields']['display']['message_text__0']['bar'] = array('weight' => 0, 'visible' => FALSE);
+    $settings['extra_fields']['display']['message_text__1']['bar'] = array('weight' => 0, 'visible' => FALSE);
+    $settings['extra_fields']['display']['message_text_another__0']['bar'] = array('weight' => 0, 'visible' => TRUE);
     field_bundle_settings('message', 'foo', $settings);
   }
 
@@ -64,16 +65,22 @@ class MessageNotifyCrud extends DrupalWebTestCase {
    * Check the correct info is sent to delivery.
    */
   function testDeliver() {
-    $message_type = $this->message_type;
-    $message = $this->message;
-
+    $wrapper = entity_metadata_wrapper('message_type', $this->message_type);
+    $message = message_create('foo');
     message_notify_send_message($message, array(), 'test');
 
     // The test notifier added the output to the message.
     $output = $message->output;
-    drush_print_r($message->output);
-    $this->assertEqual($output['foo'], '', 'Correct values rendered in first view mode.');
-    $this->assertEqual($output['bar'], '', 'Correct values rendered in second view mode.');
+    $this->assertEqual($output['foo'], $wrapper->{MESSAGE_FIELD_MESSAGE_TEXT}->get(1)->value->value(), 'Correct values rendered in first view mode.');
+    $this->assertEqual($output['bar'], $wrapper->message_text_another->value(), 'Correct values rendered in second view mode.');
+  }
+
+/**
+   * Test post-send method.
+   *
+   * Check rendered fields are populated and message is saved.
+   */
+  function __testpostSend() {
   }
 }
 
