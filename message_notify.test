@@ -179,13 +179,13 @@ class MessageNotifyNotifierTest extends DrupalWebTestCase {
       $field = array(
         'field_name' => $field_name,
         'type' => 'text_long',
-        'entity_types' => array('message_type'),
+        'entity_types' => array('message'),
       );
       $field = field_create_field($field);
       $instance = array(
         'field_name' => $field_name,
-        'bundle' => 'message_type',
-        'entity_type' => 'message_type',
+        'bundle' => 'foo',
+        'entity_type' => 'message',
         'label' => $field_name,
       );
 

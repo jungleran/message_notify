@@ -112,9 +112,9 @@ abstract class MessageNotifierBase implements MessageNotifierInterface {
     if ($options['rendered fields']) {
       // Save the rendered output into matching fields.
       $wrapper = entity_metadata_wrapper('message', $message);
-      foreach ($this->viewModes() as $view_mode) {
+      foreach ($this->viewModes() as $view_mode => $mode_name) {
         if (empty($options['rendered fields'][$view_mode])) {
-          throw new MessageNotifyException(format_string('The rendered view mode @mode cannot be saved to field, as there is not a matching one.', array('@mode' => $view_mode)));
+          throw new MessageNotifyException(format_string('The rendered view mode @mode cannot be saved to field, as there is not a matching one.', array('@mode' => $mode_name)));
         }
         $field_name = $options['rendered fields'][$view_mode];
 
