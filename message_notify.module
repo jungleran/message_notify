@@ -150,6 +150,6 @@ function message_notify_get_notifiers() {
  *
  * @deprecated
  */
-function message_notify_send_email(Message $message, array $options = array()) {
+function message_notify_send_mail(Message $message, array $options = array()) {
   message_notify_send_message($message, $options, 'email');
 }
