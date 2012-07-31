@@ -75,10 +75,8 @@ class MessageNotifyCrud extends DrupalWebTestCase {
     $this->assertEqual($output['bar'], $wrapper->message_text_another->value(), 'Correct values rendered in second view mode.');
   }
 
-/**
-   * Test post-send method.
-   *
-   * Check message saving on delivery.
+  /**
+   * Test Message save on delivery.
    */
   function testpostSendMessageSave() {
     $message = message_create('foo');
