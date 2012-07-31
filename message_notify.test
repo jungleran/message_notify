@@ -78,9 +78,34 @@ class MessageNotifyCrud extends DrupalWebTestCase {
 /**
    * Test post-send method.
    *
-   * Check rendered fields are populated and message is saved.
+   * Check message saving on delivery.
    */
-  function __testpostSend() {
+  function testpostSendMessageSave() {
+    $message = message_create('foo');
+    $message->fail = FALSE;
+    message_notify_send_message($message, array(), 'test');
+    $this->assertTrue($message->mid, 'Message not saved after successful delivery.');
+
+    $message = message_create('foo');
+    $message->fail = TRUE;
+    message_notify_send_message($message, array(), 'test');
+    $this->assertTrue($message->mid, 'Message not saved after unsuccessful delivery.');
+
+    // Disable saving Message on delivery.
+    $options = array(
+      'save on fail' => FALSE,
+      'save on success' => FALSE,
+    );
+
+    $message = message_create('foo');
+    $message->fail = FALSE;
+    message_notify_send_message($message, $options, 'test');
+    $this->assertTrue($message->is_new, 'Message not saved after successful delivery.');
+
+    $message = message_create('foo');
+    $message->fail = TRUE;
+    message_notify_send_message($message, $options, 'test');
+    $this->assertTrue($message->is_new, 'Message not saved after unsuccessful delivery.');
   }
 }
 
