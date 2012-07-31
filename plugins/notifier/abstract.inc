@@ -109,10 +109,6 @@ abstract class MessageNotifierBase implements MessageNotifierInterface {
       $save = TRUE;
     }
 
-    if (!$save) {
-      return;
-    }
-
     if ($options['rendered fields']) {
       // Save the rendered output into matching fields.
       $wrapper = entity_metadata_wrapper('message', $message);
@@ -121,6 +117,10 @@ abstract class MessageNotifierBase implements MessageNotifierInterface {
           throw new MessageNotifyException(format_string('The rendered view mode @mode cannot be saved to field, as there is not a matching one.', array('@mode' => $view_mode)));
         }
         $field_name = $options['rendered fields'][$view_mode];
+
+        if (!$field = field_info_field($field_name)) {
+          throw new MessageNotifyException(format_string('Field @field does not exist.', array('@field' => $field_name)));
+        }
 
         // Get the format from the field. We assume the first delta is the
         // same as the rest.
