@@ -1,9 +1,9 @@
 <?php
 
 /**
- * Test the Message CRUD handling.
+ * Test the Message notifier plugins handling.
  */
-class MessageNotifyCrud extends DrupalWebTestCase {
+class MessageNotifyNotifierTest extends DrupalWebTestCase {
 
   public static function getInfo() {
     return array(
@@ -110,34 +110,36 @@ class MessageNotifyCrud extends DrupalWebTestCase {
    * Test populating the rednered output to fields.
    */
   function testpostSendRenderedField() {
+    $this->attachRenderedFields();
+
     // Test plain fields.
     $options = array(
       'rendered fields' => array(
-        'foo' => 'field_rendered_foo',
-        'bar' => 'field_rendered_bar',
+        'foo' => 'rendered_foo',
+        'bar' => 'rendered_bar',
       ),
     );
     $message = message_create('foo');
     message_notify_send_message($message, $options, 'test');
     $wrapper = entity_metadata_wrapper('message', $message);
-    $this->assertTrue($wrapper->field_rendered_foo->value() && $wrapper->field_rendered_bar->value(), 'Message is rendered to fields.');
+    $this->assertTrue($wrapper->rendered_foo->value() && $wrapper->rendered_bar->value(), 'Message is rendered to fields.');
 
     // Test field with text-processing.
     $options = array(
       'rendered fields' => array(
-        'foo' => 'field_rendered_foo_2',
-        'bar' => 'field_rendered_bar',
+        'foo' => 'rendered_baz',
+        'bar' => 'rendered_bar',
       ),
     );
     $message = message_create('foo');
     message_notify_send_message($message, $options, 'test');
     $wrapper = entity_metadata_wrapper('message', $message);
-    $this->assertTrue($wrapper->field_rendered_foo_2->value->value() && $wrapper->field_rendered_bar->value(), 'Message is rendered to fields with text-processing.');
+    $this->assertTrue($wrapper->rendered_baz->value->value() && $wrapper->rendered_bar->value(), 'Message is rendered to fields with text-processing.');
 
     // Test missing view mode key in the rendered fields.
     $options = array(
       'rendered fields' => array(
-        'foo' => 'field_rendered_foo',
+        'foo' => 'rendered_foo',
         // No "bar" field.
       ),
     );
@@ -154,7 +156,7 @@ class MessageNotifyCrud extends DrupalWebTestCase {
     $options = array(
       'rendered fields' => array(
         'foo' => 'wrong_field',
-        'bar' => 'field_rendered_bar',
+        'bar' => 'rendered_bar',
       ),
     );
     $message = message_create('foo');
@@ -164,6 +166,35 @@ class MessageNotifyCrud extends DrupalWebTestCase {
     }
     catch (MessageNotifyException $e) {
       $this->pass('Cannot save rendered message to non-existing field.');
+    }
+  }
+
+  /**
+   * Helper function to attach rendred fields.
+   *
+   * @see MessageNotifyNotifier::testpostSendRenderedField()
+   */
+  function attachRenderedFields() {
+    foreach (array('rendered_foo', 'rendered_bar', 'rendered_baz') as $field_name) {
+      $field = array(
+        'field_name' => $field_name,
+        'type' => 'text_long',
+        'entity_types' => array('message_type'),
+      );
+      $field = field_create_field($field);
+      $instance = array(
+        'field_name' => $field_name,
+        'bundle' => 'message_type',
+        'entity_type' => 'message_type',
+        'label' => $field_name,
+      );
+
+      if ($field_name == 'rendered_baz') {
+        $instance['settings'] = array(
+          'text_processing' => 1,
+        );
+      }
+      field_create_instance($instance);
     }
   }
 }
