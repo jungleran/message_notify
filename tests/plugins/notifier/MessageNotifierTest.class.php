@@ -10,13 +10,15 @@ class MessageNotifierTest extends MessageNotifierBase {
    */
   public static function viewModes() {
     return array(
-      'message_notify_foo' => array('label' => t('View mode foo')),
-      'message_notify_bar' => array('label' => t('View mode bar')),
+      'foo' => array('label' => t('Foo')),
+      'bar' => array('label' => t('Bar')),
     );
   }
 
   public function deliver(array $output = array()) {
-    return TRUE;
+    $this->message->output = $output;
+    // Return TRUE or FALSE as it was set on the Message.
+    return empty($this->fail);
   }
 
 }
