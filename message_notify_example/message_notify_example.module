@@ -14,8 +14,9 @@ include_once('message_notify_example.features.inc');
 function message_notify_example_comment_insert($comment) {
   $node = node_load($comment->nid);
   if ($comment->uid == $node->uid) {
-    // The comment author is also the node author.
-    return;
+    // The comment author is also the node author, and we would ususally
+    // return early here, but since this is an example, we send an email
+    // anyway.
   }
 
   // Create a new message, assigned to the node author, and add a
