@@ -23,8 +23,8 @@ function message_notify_send_message(Message $message, array $options = array(),
   if (!$plugin = message_notify_get_notifier($notifier_name)) {
    throw new MessageNotifyException(format_string('Could not send notification using the "@notifier" notifier.'), array('@notifier' => $notifier_name));
   }
-  $options += $plugin['options'];
-  $plugin['options'] = $options;
+
+  $plugin['options'] = drupal_array_merge_deep($plugin['options'], $options);
 
   $class = ctools_plugin_load_class('message_notify', 'notifier', $notifier_name, 'class');
   $notifier = new $class($plugin, $message);
@@ -54,12 +54,13 @@ function message_notify_send_message(Message $message, array $options = array(),
 function message_notify_plugin_process(&$plugin, $info) {
   $plugin += array(
     'description' => '',
-    'options' => array(
-      'save on fail' => TRUE,
-      'save on success' => TRUE,
-      'language override' => FALSE,
-      'rendered fields' => array(),
-    ),
+    'options' => array(),
+  );
+  $plugin['options'] += array(
+    'save on fail' => TRUE,
+    'save on success' => TRUE,
+    'language override' => FALSE,
+    'rendered fields' => array(),
   );
 }
 
