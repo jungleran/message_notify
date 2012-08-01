@@ -61,3 +61,10 @@ function message_notify_update_7000() {
   $field['settings']['message_text'] = TRUE;
   field_update_field($field);
 }
+
+/**
+ * Explain about using View-modes.
+ */
+function message_notify_update_7001() {
+  return t('Message notify now works with view modes - assign the fields that should be renderd in the "Manage display" of each message-type.');
+}
