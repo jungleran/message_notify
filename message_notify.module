@@ -106,7 +106,22 @@ function message_notify_ctools_plugin_directory($module, $plugin) {
 /**
  * CTools callback; Process the notifier plugins.
  *
- * TODO: document keys.
+ * Add defaults values:
+ *
+ * - 'description': The description of the plugin.
+ * - 'options': Array with the following keys:
+ *   - 'save on fail': Save the message is delivery failed. Defaults to
+ *     TRUE.
+ *   - 'save on success': Save the message is delivery successded. Defaults to
+ *     TRUE.
+ *   - 'language override': Override user's language, and use the
+ *     Message's language. Defaults to FALSE.
+ *   - 'rendered fields': Array keyed with the view mode(s), and the text
+ *     field(s) to save the rendered output.
+ *     The rendered field is used when it is needed to save the message
+ *     exactly as it was sent (for example for message logs), as it might
+ *     change and show differently when viewed later - as a result of on
+ *     the fly token replacement, or even editing the message type.
  */
 function message_notify_plugin_process(&$plugin, $info) {
   $plugin += array(
@@ -114,9 +129,6 @@ function message_notify_plugin_process(&$plugin, $info) {
     'options' => array(
       'save on fail' => TRUE,
       'save on success' => TRUE,
-      // Override mail.
-      'mail' => FALSE,
-      // Override user's language, and use Message language.
       'language override' => FALSE,
       'rendered fields' => array(),
     ),
