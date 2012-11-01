@@ -82,20 +82,6 @@ function message_notify_entity_info_alter(&$entity_info) {
 }
 
 /**
- * Implements hook_default_message_type_category().
- */
-function message_notify_default_message_type_category() {
-  $items = array();
-  $items['message_type_email'] = entity_import('message_type_category', '{
-    "category" : "message_type_email",
-    "description" : "Message type email",
-    "statusKey" : "status",
-    "rdf_mapping" : []
-  }');
-  return $items;
-}
-
-/**
  * Implements hook_mail().
  *
  * Set's the message subject and body as configured.
