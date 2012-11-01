@@ -43,37 +43,57 @@ function message_notify_update_7002() {
  * Remove the deprecated "Subject" field.
  */
 function message_notify_update_7003(&$sandbox) {
-  // Copy the subject field to the body, and change the message-type
-  // category to be the default one.
-  if (!isset($sandbox['total'])) {
-    $query = db_select('message', 'm');
-    $query->condition('category', 'message_type_email');
+  $field = field_info_field('message_text_subject');
+  if ($field['storage']['type'] !== 'field_sql_storage') {
+    // Field doesn't use SQL storage, we cannot modify the schema.
+    return;
+  }
 
-    $sandbox['last'] = 0;
-    $sandbox['total'] = $query->countQuery()->execute()->fetchField();
+  $table_name = _field_sql_storage_tablename($field);
+  $query = db_select($table_name, $table_name);
+  $result = $query
+    ->fields($table_name)
+    ->execute()
+    ->fetchAll();
 
-    if (!$sandbox['total']) {
-      return;
+  dpm($result);
+
+  if ($result) {
+    // Get the message-text field tables.
+    $message_field = field_info_field('messaeg_text');
+    $message_table_name = _field_sql_storage_tablename($message_field);
+    $message_revision_name = _field_sql_storage_revision_tablename($message_field);
+
+    $entity_ids = array();
+    foreach ($result as $row) {
+      $entity_ids[] = $row->entity_id;
     }
 
-    if (!module_enable(array('message'))) {
-      throw new DrupalUpdateException('You must enable Message module for this update to work.');
+    // Increment the existing deltas, so we can place the value form the
+    // old field as delta 0.
+    db_update($table)
+      ->condition('entity_type', 'message_type')
+      ->condition('bundle', 'message_type_email')
+      ->condition('entity_id', $entity_ids, 'IN')
+      ->orderBy('delta', 'DESC')
+      ->expression('delta = delta + 1')
+      ->execute();
+
+    foreach ($result as $row) {
+      // Move the subject field values into the message-text field, as the
+      // first delta.
+      drupal_write_record($message_table_name, $row);
+      drupal_write_record($message_revision_name, $row);
     }
-
-    $sandbox['#finished'] = 0;
   }
-  elseif (!empty($sandbox['total']) && $sandbox['last'] <= $sandbox['total']) {
-    $batch_size = 100;
 
+  // Change the message-type bundle.
+  db_update('message_type')
+    ->condition('category', 'message_type_email')
+    ->fields(array('category' => 'message_type'))
+    ->execute();
 
-    $sandbox['last'] += $batch_size;
-    $sandbox['#finished'] = min(0.99, $sandbox['last'] / $sandbox['total']);
-  }
-  else {
-    // Finished processing.
-    $sandbox['#finished'] = 1;
-
-    $instance = field_info_instance('message_type', 'message_text_subject', 'message_type_email');
-    field_delete_instance($instance);
-  }
+  // Delete the subject field.
+  $instance = field_info_instance('message_type', 'message_text_subject', 'message_type_email');
+  field_delete_instance($instance);
 }
