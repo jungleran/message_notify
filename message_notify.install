@@ -92,4 +92,6 @@ function message_notify_update_7003(&$sandbox) {
   // Delete the subject field.
   $instance = field_info_instance('message_type', 'message_text_subject', 'message_type_email');
   field_delete_instance($instance);
+
+  return ('"Email" mesage-type category was deleted. All the values from the "Subject" field were migrated into "Message-text" field. You should adjust the Email related view-modes under "Manage display" tab of each message-type.');
 }
