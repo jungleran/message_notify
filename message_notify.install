@@ -69,15 +69,18 @@ function message_notify_update_7003(&$sandbox) {
   $subject_field = field_info_field('message_text_subject');
   $subject_table_name =  _field_sql_storage_tablename($subject_field);
 
-  $query = db_select($subject_table_name)
+  $result = db_select($subject_table_name)
+  ->fields($subject_table_name)
   ->execute()
   ->fetchAll();
 
   foreach ($result as $row) {
     // Move the subject field values into the message-text field, as the
     // first delta.
-    drupal_write_record($message_table_name, $row);
-    drupal_write_record($message_revision_name, $row);
+    $row->message_text_value = $row->message_text_subject_value;
+    $row->message_text_format = $row->message_text_subject_format;
+    drupal_write_record($table_name, $row);
+    drupal_write_record($revision_name, $row);
   }
 
   // Change the message-type bundle.
