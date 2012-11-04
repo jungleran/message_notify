@@ -43,48 +43,41 @@ function message_notify_update_7002() {
  * Remove the deprecated "Subject" field.
  */
 function message_notify_update_7003(&$sandbox) {
-  $field = field_info_field('message_text_subject');
+  $field = field_info_field('message_text');
   if ($field['storage']['type'] !== 'field_sql_storage') {
     // Field doesn't use SQL storage, we cannot modify the schema.
     return;
   }
 
-  $table_name = _field_sql_storage_tablename($field);
-  $query = db_select($table_name, $table_name);
-  $result = $query
-    ->fields($table_name)
+  $count = db_select('message_type')
+    ->condition('category', 'message_type_email')
+    ->countQuery()
     ->execute()
-    ->fetchAll();
+    ->fetchField();
 
-  dpm($result);
+  if (!$count) {
+    return;
+  }
 
-  if ($result) {
-    // Get the message-text field tables.
-    $message_field = field_info_field('messaeg_text');
-    $message_table_name = _field_sql_storage_tablename($message_field);
-    $message_revision_name = _field_sql_storage_revision_tablename($message_field);
+  // Add 1 to the delta, so we can add the subject field as delta 0.
+  $table_name = _field_sql_storage_tablename($field);
+  $revision_name = _field_sql_storage_revision_tablename($field);
+  foreach (array($table_name, $revision_name) as $table) {
+    db_query("UPDATE {$table} SET delta = delta + 1 WHERE bundle = 'message_type_email' ORDER BY entity_type, entity_id, language, delta DESC;");
+  }
 
-    $entity_ids = array();
-    foreach ($result as $row) {
-      $entity_ids[] = $row->entity_id;
-    }
+  $subject_field = field_info_field('message_text_subject');
+  $subject_table_name =  _field_sql_storage_tablename($subject_field);
 
-    // Increment the existing deltas, so we can place the value form the
-    // old field as delta 0.
-    db_update($table)
-      ->condition('entity_type', 'message_type')
-      ->condition('bundle', 'message_type_email')
-      ->condition('entity_id', $entity_ids, 'IN')
-      ->orderBy('delta', 'DESC')
-      ->expression('delta = delta + 1')
-      ->execute();
+  $query = db_select($subject_table_name)
+  ->execute()
+  ->fetchAll();
 
-    foreach ($result as $row) {
-      // Move the subject field values into the message-text field, as the
-      // first delta.
-      drupal_write_record($message_table_name, $row);
-      drupal_write_record($message_revision_name, $row);
-    }
+  foreach ($result as $row) {
+    // Move the subject field values into the message-text field, as the
+    // first delta.
+    drupal_write_record($message_table_name, $row);
+    drupal_write_record($message_revision_name, $row);
   }
 
   // Change the message-type bundle.
