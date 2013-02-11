@@ -145,7 +145,9 @@ abstract class MessageNotifierBase implements MessageNotifierInterface {
   }
 
   public static function viewModes() {
-    return array();
+    return array(
+      'message_notify_body' => array('label' => t('Message Notify - Body')),
+    );
   }
 
 }

@@ -1,8 +1,10 @@
 <?php
 
 /**
+ * @file
  * Email notifier.
  */
+
 class MessageNotifierEmail extends MessageNotifierBase {
 
   /**
