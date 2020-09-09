@@ -1,6 +1,6 @@
 name: 'Message notify example'
 description: 'Message notify example'
-core: 8.x
+core_version_requirement: ^8 || ^9
 package: Message
 dependencies:
   - drupal:message
